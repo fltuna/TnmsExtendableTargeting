@@ -75,13 +75,12 @@ public interface IExtendableTargeting
      /// <returns>true if deleted successfully, otherwise false</returns>
      public bool UnregisterCustomParameterizedTarget(string prefix);
 
-     // Extended target resolve
      /// <summary>
-     /// Resolve extended targeting. If no custom targeting matched, then it will fallback to CS#'s default targeting system.
+     /// Resolve extended targeting.
      /// </summary>
      /// <param name="targetString">Target string for finding targets</param>
      /// <param name="caller"></param>
      /// <param name="foundTargets">Returns filled TargetResult if found, otherwise empty TargetReuslt</param>
      /// <returns>true if at least 1 player found. otherwise false</returns>
-     public bool ResolveTarget(string targetString, IGameClient? caller, out List<IGameClient> foundTargets);
+     public bool ResolveTarget(string targetString, IGameClient? caller, out ITargetingResult? foundTargets);
 }

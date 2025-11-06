@@ -55,7 +55,8 @@ public class ExtendableTargeting: IModSharpModule, IExtendableTargeting
 
     private void RegisterBuiltinTargets()
     {
-        RegisterCustomTarget("@me", BuiltinTargeting.Me);
+        RegisterCustomTarget("@all", BuiltinTargeting.All);
+        RegisterCustomSingleTarget("@me", BuiltinTargeting.Me);
         RegisterCustomTarget("@!me", BuiltinTargeting.WithOutMe);
         RegisterCustomSingleTarget("@aim", BuiltinTargeting.Aim);
         RegisterCustomTarget("@ct", BuiltinTargeting.Ct);
@@ -148,8 +149,9 @@ public class ExtendableTargeting: IModSharpModule, IExtendableTargeting
          return _paramTargets.Remove(prefix);
      }
 
-     public bool ResolveTarget(string targetString, IGameClient? caller, out List<IGameClient> foundTargets)
+     public bool ResolveTarget(string targetString, IGameClient? caller, out ITargetingResult? targetingResult)
      {
+         targetingResult = null;
          
          if (targetString.StartsWith('#') && targetString.Length > 1)
          {
@@ -162,19 +164,24 @@ public class ExtendableTargeting: IModSharpModule, IExtendableTargeting
                      players.Add(client);
              }
 
-             foundTargets = players;
+             if (players.Count > 0)
+             {
+                 targetingResult = new TargetingResult(players);
+                 return true;
+             }
              
-             return foundTargets.Any();
+             return false;
          }
          
          if (_singleTargets.TryGetValue(targetString, out var singlePredicate))
          {
-             foundTargets = new List<IGameClient>();
-             var target = singlePredicate(caller);
-             if (target != null)
-                 foundTargets.Add(target);
+             if (singlePredicate(caller) is {} target)
+             {
+                 targetingResult = new TargetingResult([target]);
+                 return true;
+             }
              
-             return foundTargets.Any();
+             return false;
          }
          
          if (_customTargets.TryGetValue(targetString, out var predicate))
@@ -186,8 +193,13 @@ public class ExtendableTargeting: IModSharpModule, IExtendableTargeting
                      players.Add(client);
              }
 
-             foundTargets = players;
-             return foundTargets.Any();
+             if (players.Count > 0)
+             {
+                 targetingResult = new TargetingResult(players);
+                 return true;
+             }
+
+             return false;
          }
 
          // TODO() `=` contains can be produce bug
@@ -198,10 +210,7 @@ public class ExtendableTargeting: IModSharpModule, IExtendableTargeting
              var param = parts[1];
              
              if (param.Length < 1)
-             {
-                 foundTargets = [];
                  return false;
-             }
 
              if (_paramTargets.TryGetValue(prefix, out var paramPredicate))
              {
@@ -211,10 +220,14 @@ public class ExtendableTargeting: IModSharpModule, IExtendableTargeting
                      if (paramPredicate(param, client, caller))
                          players.Add(client);
                  }
+
+                 if (players.Count > 0)
+                 {
+                     targetingResult = new TargetingResult(players);
+                     return true;
+                 }
                  
-                 foundTargets = players;
-                 
-                 return foundTargets.Any();
+                 return false;
              }
          }
          
@@ -224,9 +237,14 @@ public class ExtendableTargeting: IModSharpModule, IExtendableTargeting
              if (client.Name.Contains(targetString, StringComparison.OrdinalIgnoreCase))
                  nameContainedPlayers.Add(client);
          }
+
+         if (nameContainedPlayers.Count > 0)
+         {
+             targetingResult = new TargetingResult(nameContainedPlayers);
+             return true;
+         }
          
-         foundTargets = nameContainedPlayers;
-         return foundTargets.Any();
+         return false;
      }
      
      
