@@ -10,10 +10,13 @@ namespace TnmsExtendableTargeting;
 internal static class BuiltinTargeting
 {
     internal static ISharedSystem SharedSystem { get; set; } = null!;
+
+    internal static bool All(IGameClient targetClient, IGameClient? caller) 
+        => true;
     
-    internal static bool Me(IGameClient targetClient, IGameClient? caller)
+    internal static IGameClient? Me(IGameClient? caller)
     {
-        return caller?.Slot == targetClient.Slot;
+        return caller;
     }
 
     internal static bool WithOutMe(IGameClient targetClient, IGameClient? caller)
