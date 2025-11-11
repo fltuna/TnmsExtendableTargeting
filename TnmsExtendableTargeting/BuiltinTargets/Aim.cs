@@ -20,7 +20,7 @@ public class Aim(ISharedSystem sharedSystem): ICustomSingleTarget
         if (caller == null)
             return null;
         
-        var callerPawn = sharedSystem.GetEntityManager().FindPlayerPawnBySlot(caller.Slot);
+        var callerPawn = caller.GetPlayerController()?.GetPlayerPawn();
         
         if (callerPawn == null)
             return null;

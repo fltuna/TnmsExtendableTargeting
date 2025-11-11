@@ -7,7 +7,7 @@ using TnmsExtendableTargeting.Shared;
 
 namespace TnmsExtendableTargeting.BuiltinTargets;
 
-public class Alive(ISharedSystem sharedSystem): ICustomTarget
+public class Alive: ICustomTarget
 {
     private static readonly Dictionary<string, string> LangMap = new();
 
@@ -29,6 +29,6 @@ public class Alive(ISharedSystem sharedSystem): ICustomTarget
 
     public bool Resolve(IGameClient targetClient, IGameClient? caller)
     {
-        return sharedSystem.GetEntityManager().FindPlayerPawnBySlot(targetClient.Slot)?.LifeState == LifeState.Alive;
+        return targetClient.GetPlayerController()?.GetPlayerPawn()?.LifeState == LifeState.Alive;
     }
 }

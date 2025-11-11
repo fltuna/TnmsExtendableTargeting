@@ -7,7 +7,7 @@ using TnmsExtendableTargeting.Shared;
 
 namespace TnmsExtendableTargeting.BuiltinTargets;
 
-public class Te(ISharedSystem sharedSystem): ICustomTarget
+public class Te: ICustomTarget
 {
     private static readonly Dictionary<string, string> LangMap = new();
 
@@ -29,6 +29,6 @@ public class Te(ISharedSystem sharedSystem): ICustomTarget
 
     public bool Resolve(IGameClient targetClient, IGameClient? caller)
     {
-        return sharedSystem.GetEntityManager().FindPlayerPawnBySlot(targetClient.Slot)?.Team == CStrikeTeam.TE;
+        return targetClient.GetPlayerController()?.GetPlayerPawn()?.Team == CStrikeTeam.TE;
     }
 }

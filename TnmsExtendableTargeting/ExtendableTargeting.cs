@@ -61,13 +61,13 @@ public class ExtendableTargeting: IModSharpModule, IExtendableTargeting
         RegisterCustomSingleTarget(new Me());
         RegisterCustomTarget(new WithOutMe());
         RegisterCustomSingleTarget(new Aim(_sharedSystem));
-        RegisterCustomTarget(new Ct(_sharedSystem));
-        RegisterCustomTarget(new Te(_sharedSystem));
-        RegisterCustomTarget(new Spectator(_sharedSystem));
+        RegisterCustomTarget(new Ct());
+        RegisterCustomTarget(new Te());
+        RegisterCustomTarget(new Spectator());
         RegisterCustomTarget(new Bot());
         RegisterCustomTarget(new Human());
-        RegisterCustomTarget(new Alive(_sharedSystem));
-        RegisterCustomTarget(new Dead(_sharedSystem));
+        RegisterCustomTarget(new Alive());
+        RegisterCustomTarget(new Dead());
     }
      
      // Custom target
