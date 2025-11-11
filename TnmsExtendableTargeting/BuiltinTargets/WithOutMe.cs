@@ -1,0 +1,32 @@
+﻿using System.Collections.Generic;
+using System.Globalization;
+using Sharp.Shared.Objects;
+using TnmsExtendableTargeting.Shared;
+
+namespace TnmsExtendableTargeting.BuiltinTargets;
+
+public class WithOutMe: ICustomTarget
+{
+    private static readonly Dictionary<string, string> LangMap = new();
+
+    static WithOutMe()
+    {
+        LangMap["en"] = "All Players";
+        LangMap["ja"] = "全てのプレイヤー";
+    }
+    
+    public string Prefix => "@!me";
+    
+    public string LocalizedTargetName(CultureInfo culture)
+    {
+        if (LangMap.TryGetValue(culture.TwoLetterISOLanguageName, out var lang))
+            return lang;
+        
+        return Prefix;
+    }
+
+    public bool Resolve(IGameClient targetClient, IGameClient? caller)
+    {
+        return caller?.Slot != targetClient.Slot;
+    }
+}

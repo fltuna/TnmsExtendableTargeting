@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Sharp.Shared;
-using Sharp.Shared.Enums;
 using Sharp.Shared.Objects;
+using TnmsExtendableTargeting.BuiltinTargets;
+using TnmsExtendableTargeting.BuiltinTargets.SpecialImpl;
 using TnmsExtendableTargeting.Shared;
 
 namespace TnmsExtendableTargeting;
@@ -14,6 +14,9 @@ public class ExtendableTargeting: IModSharpModule, IExtendableTargeting
 {
     private readonly ILogger _logger;
     private readonly ISharedSystem _sharedSystem;
+
+    private readonly ICustomParameterizedTarget _nameContainedPlayer = new NameContainedPlayer();
+    private readonly ICustomParameterizedTarget _sharpPrefixed = new SharpPrefixed();
     
     public ExtendableTargeting(ISharedSystem sharedSystem,
         string?                  dllPath,
@@ -38,7 +41,6 @@ public class ExtendableTargeting: IModSharpModule, IExtendableTargeting
     {
         _logger.LogInformation("TnmsExtendableTargeting initialized");
         
-        BuiltinTargeting.SharedSystem = _sharedSystem;
         RegisterBuiltinTargets();
         return true;
     }
@@ -55,47 +57,32 @@ public class ExtendableTargeting: IModSharpModule, IExtendableTargeting
 
     private void RegisterBuiltinTargets()
     {
-        RegisterCustomTarget("@all", BuiltinTargeting.All);
-        RegisterCustomSingleTarget("@me", BuiltinTargeting.Me);
-        RegisterCustomTarget("@!me", BuiltinTargeting.WithOutMe);
-        RegisterCustomSingleTarget("@aim", BuiltinTargeting.Aim);
-        RegisterCustomTarget("@ct", BuiltinTargeting.Ct);
-        RegisterCustomTarget("@t", BuiltinTargeting.Te);
-        RegisterCustomTarget("@spec", BuiltinTargeting.Spectator);
-        RegisterCustomTarget("@bot", BuiltinTargeting.Bot);
-        RegisterCustomTarget("@human", BuiltinTargeting.Human);
-        RegisterCustomTarget("@alive", BuiltinTargeting.Alive);
-        RegisterCustomTarget("@dead", BuiltinTargeting.Dead);
+        RegisterCustomTarget(new All());
+        RegisterCustomSingleTarget(new Me());
+        RegisterCustomTarget(new WithOutMe());
+        RegisterCustomSingleTarget(new Aim(_sharedSystem));
+        RegisterCustomTarget(new Ct(_sharedSystem));
+        RegisterCustomTarget(new Te(_sharedSystem));
+        RegisterCustomTarget(new Spectator(_sharedSystem));
+        RegisterCustomTarget(new Bot());
+        RegisterCustomTarget(new Human());
+        RegisterCustomTarget(new Alive(_sharedSystem));
+        RegisterCustomTarget(new Dead(_sharedSystem));
     }
-
-    // This is a '#' prefixed targeting
-    private bool SharpPrefixParamTargets(string param, IGameClient targetClient, IGameClient? caller)
-    {
-        if (!uint.TryParse(param, out var result))
-            return false;
-
-        if (targetClient.SteamId.AccountId == result)
-            return true;
-        
-        if (targetClient.UserId.AsPrimitive() == result)
-            return true;
-        
-        return false;
-    }
-
      
      // Custom target
-     private readonly Dictionary<string, IExtendableTargeting.TargetPredicateDelegate> _customTargets = new(StringComparer.OrdinalIgnoreCase);
+     private readonly Dictionary<string, ICustomTarget> _customTargets = new(StringComparer.OrdinalIgnoreCase);
      
      // Custom single target
-     private readonly Dictionary<string, IExtendableTargeting.SingleTargetPredicateDelegate> _singleTargets = new(StringComparer.OrdinalIgnoreCase);
+     private readonly Dictionary<string, ICustomSingleTarget> _singleTargets = new(StringComparer.OrdinalIgnoreCase);
          
      // Parameterized target
-     private readonly Dictionary<string, IExtendableTargeting.ParameterizedTargetPredicateDelegate> _paramTargets = new(StringComparer.OrdinalIgnoreCase);
+     private readonly Dictionary<string, ICustomParameterizedTarget> _paramTargets = new(StringComparer.OrdinalIgnoreCase);
 
 
-     public void RegisterCustomSingleTarget(string prefix, IExtendableTargeting.SingleTargetPredicateDelegate predicate)
+     public void RegisterCustomSingleTarget(ICustomSingleTarget predicate)
      {
+         string prefix = predicate.Prefix;
          if (!prefix.StartsWith('@'))
          {
              prefix = '@' + prefix;
@@ -112,8 +99,9 @@ public class ExtendableTargeting: IModSharpModule, IExtendableTargeting
          return _singleTargets.Remove(prefix);
      }
 
-     public void RegisterCustomTarget(string prefix, IExtendableTargeting.TargetPredicateDelegate predicate)
+     public void RegisterCustomTarget(ICustomTarget predicate)
      {
+         string prefix = predicate.Prefix;
          if (!prefix.StartsWith('@'))
          {
              prefix = '@' + prefix;
@@ -131,8 +119,9 @@ public class ExtendableTargeting: IModSharpModule, IExtendableTargeting
          return _customTargets.Remove(prefix);
      }
 
-     public void RegisterCustomParameterizedTarget(string prefix, IExtendableTargeting.ParameterizedTargetPredicateDelegate predicate)
+     public void RegisterCustomParameterizedTarget(ICustomParameterizedTarget predicate)
      {
+         string prefix = predicate.Prefix;
          if (!prefix.StartsWith('@'))
          {
              prefix = '@' + prefix;
@@ -160,13 +149,13 @@ public class ExtendableTargeting: IModSharpModule, IExtendableTargeting
              List<IGameClient> players = new();
              foreach (var client in _sharedSystem.GetModSharp().GetIServer().GetGameClients())
              {
-                 if (SharpPrefixParamTargets(param, client, caller))
+                 if (_sharpPrefixed.Resolve(param, client, caller))
                      players.Add(client);
              }
 
              if (players.Count > 0)
              {
-                 targetingResult = new TargetingResult(players);
+                 targetingResult = new TargetingResult(players, _sharpPrefixed);
                  return true;
              }
              
@@ -175,9 +164,9 @@ public class ExtendableTargeting: IModSharpModule, IExtendableTargeting
          
          if (_singleTargets.TryGetValue(targetString, out var singlePredicate))
          {
-             if (singlePredicate(caller) is {} target)
+             if (singlePredicate.Resolve(caller) is {} target)
              {
-                 targetingResult = new TargetingResult([target]);
+                 targetingResult = new TargetingResult([target], singlePredicate);
                  return true;
              }
              
@@ -189,20 +178,19 @@ public class ExtendableTargeting: IModSharpModule, IExtendableTargeting
              List<IGameClient> players = new();
              foreach (var client in _sharedSystem.GetModSharp().GetIServer().GetGameClients())
              {
-                 if (predicate(client, caller))
+                 if (predicate.Resolve(client, caller))
                      players.Add(client);
              }
 
              if (players.Count > 0)
              {
-                 targetingResult = new TargetingResult(players);
+                 targetingResult = new TargetingResult(players, predicate);
                  return true;
              }
 
              return false;
          }
 
-         // TODO() `=` contains can be produce bug
          if (targetString.StartsWith('@') && targetString.Contains('='))
          {
              var parts = targetString.Split('=', 2);
@@ -217,13 +205,13 @@ public class ExtendableTargeting: IModSharpModule, IExtendableTargeting
                  List<IGameClient> players = new();
                  foreach (var client in _sharedSystem.GetModSharp().GetIServer().GetGameClients())
                  {
-                     if (paramPredicate(param, client, caller))
+                     if (paramPredicate.Resolve(param, client, caller))
                          players.Add(client);
                  }
 
                  if (players.Count > 0)
                  {
-                     targetingResult = new TargetingResult(players);
+                     targetingResult = new TargetingResult(players, predicate!);
                      return true;
                  }
                  
@@ -234,13 +222,13 @@ public class ExtendableTargeting: IModSharpModule, IExtendableTargeting
          List<IGameClient> nameContainedPlayers = new();
          foreach (var client in _sharedSystem.GetModSharp().GetIServer().GetGameClients())
          {
-             if (client.Name.Contains(targetString, StringComparison.OrdinalIgnoreCase))
+             if (_nameContainedPlayer.Resolve(targetString, client, caller))
                  nameContainedPlayers.Add(client);
          }
 
          if (nameContainedPlayers.Count > 0)
          {
-             targetingResult = new TargetingResult(nameContainedPlayers);
+             targetingResult = new TargetingResult(nameContainedPlayers, _nameContainedPlayer);
              return true;
          }
          
