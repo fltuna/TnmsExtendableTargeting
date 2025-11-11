@@ -10,7 +10,7 @@ public class SharpPrefixed: ICustomParameterizedTarget
     public string Prefix => "";
     
     public string LocalizedTargetName(CultureInfo culture)
-        => throw new InvalidOperationException("This target is not supports translation.");
+        => throw new InvalidOperationException("SharpPrefixed targeting(UserSlot | SteamId Match) is not supports translation.");
 
     public bool Resolve(string param, IGameClient targetClient, IGameClient? caller)
     {
