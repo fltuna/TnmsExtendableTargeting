@@ -10,14 +10,14 @@ public class SharpPrefixed: ICustomTargetParameterized
     public string Prefix => "";
     
     public string LocalizedTargetName(CultureInfo culture)
-        => throw new InvalidOperationException("SharpPrefixed targeting(UserSlot | SteamId Match) is not supports translation.");
+        => throw new InvalidOperationException("SharpPrefixed targeting(UserID | SteamId Match) is not supports translation.");
 
     public bool Resolve(string param, IGameClient targetClient, IGameClient? caller)
     {
         if (!uint.TryParse(param, out var result))
             return false;
         
-        if (targetClient.Slot.AsPrimitive() == result)
+        if (targetClient.UserId.AsPrimitive() == result)
             return true;
 
         if (targetClient.SteamId.AccountId == result)
