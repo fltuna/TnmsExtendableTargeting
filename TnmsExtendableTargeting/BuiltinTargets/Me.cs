@@ -5,7 +5,7 @@ using TnmsExtendableTargeting.Shared;
 
 namespace TnmsExtendableTargeting.BuiltinTargets;
 
-public class Me: ICustomSingleTarget
+public class Me: ICustomTargetCaller
 {
     public string Prefix => "@me";
     

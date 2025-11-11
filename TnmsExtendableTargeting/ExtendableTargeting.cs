@@ -15,8 +15,8 @@ public class ExtendableTargeting: IModSharpModule, IExtendableTargeting
     private readonly ILogger _logger;
     private readonly ISharedSystem _sharedSystem;
 
-    private readonly ICustomParameterizedTarget _nameContainedPlayer = new NameContainedPlayer();
-    private readonly ICustomParameterizedTarget _sharpPrefixed = new SharpPrefixed();
+    private readonly ICustomTargetParameterized _nameContainedPlayer = new NameContainedPlayer();
+    private readonly ICustomTargetParameterized _sharpPrefixed = new SharpPrefixed();
     
     public ExtendableTargeting(ISharedSystem sharedSystem,
         string?                  dllPath,
@@ -74,13 +74,13 @@ public class ExtendableTargeting: IModSharpModule, IExtendableTargeting
      private readonly Dictionary<string, ICustomTarget> _customTargets = new(StringComparer.OrdinalIgnoreCase);
      
      // Custom single target
-     private readonly Dictionary<string, ICustomSingleTarget> _singleTargets = new(StringComparer.OrdinalIgnoreCase);
+     private readonly Dictionary<string, ICustomTargetCaller> _singleTargets = new(StringComparer.OrdinalIgnoreCase);
          
      // Parameterized target
-     private readonly Dictionary<string, ICustomParameterizedTarget> _paramTargets = new(StringComparer.OrdinalIgnoreCase);
+     private readonly Dictionary<string, ICustomTargetParameterized> _paramTargets = new(StringComparer.OrdinalIgnoreCase);
 
 
-     public void RegisterCustomSingleTarget(ICustomSingleTarget predicate)
+     public void RegisterCustomSingleTarget(ICustomTargetCaller predicate)
      {
          string prefix = predicate.Prefix;
          if (!prefix.StartsWith('@'))
@@ -119,7 +119,7 @@ public class ExtendableTargeting: IModSharpModule, IExtendableTargeting
          return _customTargets.Remove(prefix);
      }
 
-     public void RegisterCustomParameterizedTarget(ICustomParameterizedTarget predicate)
+     public void RegisterCustomParameterizedTarget(ICustomTargetParameterized predicate)
      {
          string prefix = predicate.Prefix;
          if (!prefix.StartsWith('@'))

@@ -5,7 +5,7 @@ using TnmsExtendableTargeting.Shared;
 
 namespace TnmsExtendableTargeting.BuiltinTargets.SpecialImpl;
 
-public class NameContainedPlayer: ICustomParameterizedTarget
+public class NameContainedPlayer: ICustomTargetParameterized
 {
     public string Prefix => "";
     

@@ -12,7 +12,7 @@ public interface IExtendableTargeting
     /// Register custom single targeting
     /// </summary>
     /// <param name="predicate"></param>
-    public void RegisterCustomSingleTarget(ICustomSingleTarget predicate);
+    public void RegisterCustomSingleTarget(ICustomTargetCaller predicate);
      
     /// <summary>
     /// Unregister custom single target from extended targeting
@@ -40,7 +40,7 @@ public interface IExtendableTargeting
      /// Registers a custom parameterized targeting
      /// </summary>
      /// <param name="predicate"></param>
-     public void RegisterCustomParameterizedTarget(ICustomParameterizedTarget predicate);
+     public void RegisterCustomParameterizedTarget(ICustomTargetParameterized predicate);
      
      /// <summary>
      /// Unregister custom parameterized target from extended targeting

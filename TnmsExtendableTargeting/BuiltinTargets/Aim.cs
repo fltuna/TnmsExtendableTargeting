@@ -8,7 +8,7 @@ using TnmsExtendableTargeting.Shared;
 
 namespace TnmsExtendableTargeting.BuiltinTargets;
 
-public class Aim(ISharedSystem sharedSystem): ICustomSingleTarget
+public class Aim(ISharedSystem sharedSystem): ICustomTargetCaller
 {
     public string Prefix => "@aim";
     

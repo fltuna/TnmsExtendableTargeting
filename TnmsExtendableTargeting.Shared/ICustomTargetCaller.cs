@@ -2,7 +2,7 @@
 
 namespace TnmsExtendableTargeting.Shared;
 
-public interface ICustomSingleTarget: ICustomTargetBase
+public interface ICustomTargetCaller: ICustomTargetBase
 {
     /// <summary>
     /// Resolve single target

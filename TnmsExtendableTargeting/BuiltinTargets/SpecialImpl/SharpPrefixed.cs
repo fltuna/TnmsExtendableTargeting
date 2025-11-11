@@ -5,7 +5,7 @@ using TnmsExtendableTargeting.Shared;
 
 namespace TnmsExtendableTargeting.BuiltinTargets.SpecialImpl;
 
-public class SharpPrefixed: ICustomParameterizedTarget
+public class SharpPrefixed: ICustomTargetParameterized
 {
     public string Prefix => "";
     

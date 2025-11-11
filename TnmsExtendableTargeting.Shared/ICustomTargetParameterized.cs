@@ -2,7 +2,7 @@
 
 namespace TnmsExtendableTargeting.Shared;
 
-public interface ICustomParameterizedTarget: ICustomTargetBase
+public interface ICustomTargetParameterized: ICustomTargetBase
 {
     /// <summary>
     /// Resolve Custom parameterized target
